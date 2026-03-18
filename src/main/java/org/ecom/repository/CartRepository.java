@@ -10,6 +10,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -76,6 +77,7 @@ public class CartRepository {
                 "where u.name=?";
         return jdbcTemplate.query(sql,rowMap(),username);
     }
+
     private RowMapper<Item> rowMap(){
         return new RowMapper<Item>() {
             @Nullable
@@ -94,9 +96,14 @@ public class CartRepository {
         };
     }
 
+    @Transactional
     public void deleteItem(int id) {
+        String sql_userid="select user_id from cartItem where id= ? ";
+        int userid=jdbcTemplate.queryForObject(sql_userid,Integer.class,id);
         String sql="delete from cartItem where id= ? ";
         jdbcTemplate.update(sql,id);
+        String delete_user_sql="delete from user where id = ?";
+        jdbcTemplate.update(delete_user_sql,userid);
     }
 
     public boolean checkId(int id) {
@@ -104,4 +111,5 @@ public class CartRepository {
         int size=jdbcTemplate.queryForObject(sql,Integer.class,id);
         return size>0;
     }
+
 }
